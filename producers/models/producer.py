@@ -49,7 +49,7 @@ class Producer:
 
     def create_topic(self):
         """Creates the producer topic if it does not already exist"""
-        futures = AdminClient(self.broker_properties).create_topics(
+        futures = AdminClient({"bootstrap.servers": BROKER_URL}).create_topics(
             [
                 NewTopic(
                     topic=self.topic_name,
