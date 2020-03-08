@@ -7,8 +7,10 @@ from confluent_kafka.avro import AvroProducer
 
 logger = logging.getLogger(__name__)
 
-BROKER_URL = "PLAINTEXT://kafka0:9092,PLAINTEXT://kafka1:9093,PLAINTEXT://kafka2:9094"
-SCHEMA_REGISTRY_URL = "http://schema-registry:8081/"
+BROKER_URL = (
+    "PLAINTEXT://localhost:9092,PLAINTEXT://localhost:9093,PLAINTEXT://localhost:9094"
+)
+SCHEMA_REGISTRY_URL = "http://localhost:8081"
 
 
 class Producer:
@@ -49,7 +51,8 @@ class Producer:
 
     def create_topic(self):
         """Creates the producer topic if it does not already exist"""
-        futures = AdminClient({"bootstrap.servers": BROKER_URL}).create_topics(
+        client = AdminClient({"bootstrap.servers": BROKER_URL})
+        futures = client.create_topics(
             [
                 NewTopic(
                     topic=self.topic_name,
@@ -58,8 +61,7 @@ class Producer:
                 )
             ]
         )
-
-        for topic, future in futures.items():
+        for _, future in futures.items():
             try:
                 future.result()
                 logger.info("topic created")
@@ -68,7 +70,8 @@ class Producer:
 
     def close(self):
         """Prepares the producer for exit by cleaning up the producer"""
-        self.producer.flush()
+        if self.producer:
+            self.producer.flush()
         logger.info("producer ready to close")
 
     def time_millis(self):

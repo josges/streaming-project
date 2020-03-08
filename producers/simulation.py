@@ -35,7 +35,6 @@ class TimeSimulation:
         self.raw_df = pd.read_csv(
             f"{Path(__file__).parents[0]}/data/cta_stations.csv"
         ).sort_values("order")
-
         # Define the train schedule (same for all trains)
         self.schedule = schedule
         if schedule is None:
@@ -48,7 +47,6 @@ class TimeSimulation:
                 TimeSimulation.weekdays.sat: {0: TimeSimulation.ten_min_frequency},
                 TimeSimulation.weekdays.sun: {0: TimeSimulation.ten_min_frequency},
             }
-
         self.train_lines = [
             Line(Line.colors.blue, self.raw_df[self.raw_df["blue"]]),
             Line(Line.colors.red, self.raw_df[self.raw_df["red"]]),
