@@ -11,7 +11,6 @@ import tornado.web
 # Import logging before models to ensure configuration is picked up
 logging.config.fileConfig(f"{Path(__file__).parents[0]}/logging.ini")
 
-
 from consumer import KafkaConsumer
 from models import Lines, Weather
 import topic_check
@@ -46,7 +45,7 @@ def run_server():
             "Ensure that the KSQL Command has run successfully before running the web server!"
         )
         exit(1)
-    if topic_check.topic_exists("org.chicago.cta.stations.table.v1") is False:
+    if topic_check.topic_exists("com.udacity.stations.transformed") is False:
         logger.fatal(
             "Ensure that Faust Streaming is running successfully before running the web server!"
         )
