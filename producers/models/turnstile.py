@@ -19,7 +19,7 @@ class Turnstile(Producer):
 
     def __init__(self, station):
         """Create the Turnstile"""
-                station_name = (
+        station_name = (
             station.name.lower()
             .replace("/", "_and_")
             .replace(" ", "_")
