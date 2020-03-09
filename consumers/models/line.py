@@ -56,17 +56,17 @@ class Line:
 
     def process_message(self, message):
         """Given a kafka message, extract data"""
-        if message.topic == 'com.udacity.stations.transformed':
+        if message.topic() == 'com.udacity.stations.transformed':
             try:
                 value = json.loads(message.value())
                 self._handle_station(value)
             except Exception as e:
                 logger.fatal("bad station? %s, %s", value, e)
-        elif message.topic.startswith('com.udacity.station.'):
+        elif message.topic().startswith('com.udacity.station.arrivals'):
             self._handle_arrival(message)
-        elif message.topic == 'TURNSTILE_SUMMARY':
+        elif message.topic() == 'TURNSTILE_SUMMARY':
+            station_id = int(message.key())
             json_data = json.loads(message.value())
-            station_id = json_data.get("STATION_ID")
             station = self.stations.get(station_id)
             if station is None:
                 logger.debug("unable to handle message due to missing station")

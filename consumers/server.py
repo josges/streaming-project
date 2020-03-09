@@ -67,7 +67,7 @@ def run_server():
             offset_earliest=True,
         ),
         KafkaConsumer(
-            "com.udacity.stations",
+            "com.udacity.stations.transformed",
             lines.process_message,
             offset_earliest=True,
             is_avro=False,

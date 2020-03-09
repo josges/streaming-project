@@ -1,7 +1,7 @@
 """Defines core consumer functionality"""
 import logging
 
-from confluent_kafka import Consumer, OFFSET_BEGINNING
+from confluent_kafka import Consumer
 from confluent_kafka.avro import AvroConsumer
 from tornado import gen
 
@@ -30,26 +30,25 @@ class KafkaConsumer:
 
         self.broker_properties = {
             "bootstrap.servers": "PLAINTEXT://localhost:9092,PLAINTEXT://localhost:9093,PLAINTEXT://localhost:9094",
-            "group.id": "0",
+            "group.id": "00",
         }
 
         if is_avro:
             self.broker_properties["schema.registry.url"] = "http://localhost:8081"
-            self.consumer = AvroConsumer(
-                self.broker_properties
-            )
+            self.consumer = AvroConsumer(self.broker_properties)
         else:
             self.consumer = Consumer(self.broker_properties)
 
         self.consumer.subscribe([self.topic_name_pattern], on_assign=self.on_assign)
+        logger.info(f"{self.topic_name_pattern} subscribed!")
 
     def on_assign(self, consumer, partitions):
         """Callback for when topic assignment takes place"""
         if self.offset_earliest:
             for partition in partitions:
-                partition.offset = OFFSET_BEGINNING
+                partition.offset = 0
+        consumer.assign(partitions, )
         logger.info("partitions assigned for %s", self.topic_name_pattern)
-        consumer.assign(partitions)
 
     async def consume(self):
         """Asynchronously consumes data from kafka topic"""
@@ -63,15 +62,16 @@ class KafkaConsumer:
         """Polls for a message. Returns 1 if a message was received, 0 otherwise"""
         message = self.consumer.poll(1.0)
         if message is None:
-            logger.info("no message received by consumer")
+            logger.debug("no message received by consumer %s", self.topic_name_pattern)
             return 0
         elif message.error() is not None:
             logger.info(f"error from consumer {message.error()}")
         else:
             self.message_handler(message)
-            logger.info(f"consumed message {message.key()}: {message.value()}")
             return 1
 
     def close(self):
         """Cleans up any open kafka consumers"""
+        self.consumer.unsubscribe()
+        logger.info(f"unsubscribed from {self.topic_name_pattern}")
         self.consumer.close()
