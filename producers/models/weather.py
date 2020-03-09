@@ -31,9 +31,11 @@ class Weather(Producer):
 
     def __init__(self, month):
         super().__init__(
-            "com.udacity.weather",
+            topic_name="com.udacity.weather",
             key_schema=Weather.key_schema,
             value_schema=Weather.value_schema,
+            num_partitions=1,
+            num_replicas=1,
         )
 
         self.status = Weather.status.sunny
@@ -63,15 +65,23 @@ class Weather(Producer):
 
     def run(self, month):
         self._set_weather(month)
-        data = {
-            "value_schema": Weather.value_schema,
-            "records": [{"temperature": self.temp, "status": self.status}],
-        }
-        logger.info("weather kafka proxy integration incomplete - skipping")
+        data = json.dumps({
+            "records": [{
+                "key": {
+                    "timestamp": self.time_millis()
+                },
+                "value": {
+                    "temperature": self.temp,
+                    "status": self.status.name
+                }
+            }],
+            "value_schema": json.dumps(Weather.value_schema),
+            "key_schema": json.dumps(Weather.key_schema),
+        })
         resp = requests.post(
             f"{Weather.rest_proxy_url}/topics/com.udacity.weather",
             headers={"Content-Type": "application/vnd.kafka.avro.v2+json"},
-            data=json.dumps(data),
+            data=data,
         )
         resp.raise_for_status()
 
